@@ -1,0 +1,15 @@
+Tasks
+Create N variable number of customers a day - store net new customer's in database
+
+Generate a list of daily interactions some from new and old customers as well as customer's who haven't purchased yet
+
+Simulate time series data - have daily customer interactions impacted by weekdays vs. weekends, holidays, and outliers (maybe advertisements that impact purchase?)
+
+Path diagram:
+DayAugmentor > Visitor (UUID) > Interaction (Simulate Customer Behavior) > Customer (Append additional information post-purchase)
+
+*Note number of Visitors and Interactions needs to be influenced by a time series model termed as DayAugmentor here 
+
+Optional:
+Can I add advertisement to increase visitors to site and thus customers?
+Can I create a simulation for customers to site given all the above parameters that models interactions on site and defines customers 

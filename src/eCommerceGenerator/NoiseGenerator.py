@@ -5,12 +5,11 @@ class NoiseGenerator:
     ##TODO: Sometimes magnitude needs to be a fraction, would be better in these instances to rename
         self.n_customers = n_customers
 
-    
     def add_gaussian_noise(self,df, col_name, noise_min, noise_max):
         return df[col_name] + np.random.normal(noise_min, noise_max, size=self.n_customers)
 
     def add_errors(df, col_name, magnitude, ):
-        ##TODO: Magnitutde has to be a fraction
+
         if not (0 <= magnitude <= 1):
             raise ValueError("Magnitude must be a fraction between 0 and 1.")
         
