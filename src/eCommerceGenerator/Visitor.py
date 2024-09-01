@@ -1,1 +1,0 @@
-#new visitors are defined here as a class
