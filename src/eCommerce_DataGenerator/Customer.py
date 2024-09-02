@@ -5,8 +5,6 @@ from faker import Faker
 
 class Customer:
     def __init__(self, visitor_id, name=None, gender=None, age=None):
-        if not isinstance(visitor_id, uuid.UUID):
-            raise ValueError("A valid UUID must be provided for the ID.")
               
         fake = Faker()
         
@@ -24,7 +22,7 @@ class Customer:
     
     def to_dict(self):
         return {
-            'visitor_id': self.id,
+            'visitor_id': self.visitor_id,
             'name': self.name,
             'gender': self.gender,
             'age': self.age,

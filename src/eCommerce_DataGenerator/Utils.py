@@ -14,6 +14,7 @@ def insert_interactions(data, conn):
             VALUES (:visitor_id, :page, :interaction, :element, :timestamp)
         """, record)
     conn.commit()
+    print('interactions uploaded')
 
 def insert_customers(data, conn):
     """
@@ -25,12 +26,13 @@ def insert_customers(data, conn):
     cursor = conn.cursor()
     for record in data:
         cursor.execute("""
-            INSERT INTO customers (ID, Name, Gender, Age, Income, Purchase_Count, Last_Purchase_Time, Email)
+            INSERT INTO customers (visitor_id, name, gender, age, purchase_count, last_purchase_time, email)
             VALUES (:visitor_id, :name, :gender, :age, :purchase_count, :last_purchase_time, :email)
         """, record)
     conn.commit()
+    print('customers uploaded')
 
-def load_data_to_db(all_data, customer_data, db_name="simulation_data.db"):
+def load_data_to_db(interactions, customer_data, db_name="eCommerce_Simulation.db"):
     """
     Loads interaction and customer data into the SQLite database.
     
@@ -43,7 +45,7 @@ def load_data_to_db(all_data, customer_data, db_name="simulation_data.db"):
     
     try:
         # Insert all_data into the interactions table
-        insert_interactions(all_data, conn)
+        insert_interactions(interactions, conn)
         
         # Insert customer_data into the customers table
         insert_customers(customer_data, conn)

@@ -9,7 +9,7 @@ from .Customer import Customer
 class Visitor:
     def __init__(self, env, dropoff_probability):
         self.env = env
-        self.id = uuid.uuid4()
+        self.visitor_id = uuid.uuid4()
         self.data = []
         self.dropoff_probability = dropoff_probability
         self.customer = None
@@ -17,7 +17,7 @@ class Visitor:
     def pageview(self, page):
         current_time = self.get_current_time()
         self.data.append({
-            'visitor_id': self.id,
+            'visitor_id': str(self.visitor_id),
             'page': page,
             'interaction': 'Pageview',
             'element': None,
@@ -28,7 +28,7 @@ class Visitor:
     def click(self, page, element):
         current_time = self.get_current_time()
         self.data.append({
-            'visitor_id': self.id,
+            'visitor_id': str(self.visitor_id),
             'page': page,
             'interaction': 'Click',
             'element': element,
@@ -80,7 +80,7 @@ class Visitor:
         yield self.env.timeout(.2)
 
         self.pageview('Order Confirmation')
-        self.customer = Customer(id=self.id)
+        self.customer = Customer(visitor_id=str(self.visitor_id))
         self.customer.make_purchase(self.get_current_time())
         #print(f"Customer {self.customer.id} made a purchase. Total purchases: {self.customer.purchase_count}.")
 

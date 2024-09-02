@@ -30,9 +30,9 @@ def main():
             customer_data.append(visitor.customer.to_dict())
 
     print(f"Total number of interactions collected: {len(interactions)}")
-    print(f"Total number of customers: {len(customer_data)}")
+    print(f"Total number of customers: {len(customer_data)}") 
+
     
-    #conn = sqlite3.connect('simulation_data.db')
     Utils.load_data_to_db(interactions, customer_data)
 
 if __name__ == '__main__':
