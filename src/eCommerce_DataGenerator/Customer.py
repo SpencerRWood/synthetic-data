@@ -4,27 +4,33 @@ import pandas as pd
 from faker import Faker
 
 class Customer:
-    def __init__(self, name=None, gender=None, age=None, income=None):
+    def __init__(self, visitor_id, name=None, gender=None, age=None):
+        if not isinstance(visitor_id, uuid.UUID):
+            raise ValueError("A valid UUID must be provided for the ID.")
+              
         fake = Faker()
         
-        self.id = uuid.uuid4()  # Generate a unique ID for the customer
+        self.visitor_id = visitor_id
         self.name = name if name else fake.name()  # Generate a random name if not provided
         self.gender = gender if gender else random.choice(['Male', 'Female'])
         self.age = age if age else random.randint(18, 80)  # Random age between 18 and 80
-        self.income = income if income else random.randint(30000, 200000)  # Random income between 30k and 200k
+        self.purchase_count = 0
+        self.last_purchase_time = None
+        self.email = fake.email()
+
+    def make_purchase(self, timestamp):
+        self.purchase_count += 1
+        self.last_purchase_time = timestamp
     
     def to_dict(self):
         return {
-            'ID': self.id,
-            'Name': self.name,
-            'Gender': self.gender,
-            'Age': self.age,
-            'Income': self.income
+            'visitor_id': self.id,
+            'name': self.name,
+            'gender': self.gender,
+            'age': self.age,
+            'purchase_count': self.purchase_count,
+            'last_purchase_time': self.last_purchase_time,
+            'email': self.email
+
         }
 
-def generate_customers(n_customers):
-    customers = []
-    for _ in range(n_customers):
-        customer = Customer()
-        customers.append(customer.to_dict())
-    return customers

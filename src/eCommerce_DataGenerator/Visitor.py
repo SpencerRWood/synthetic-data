@@ -4,6 +4,7 @@ import simpy
 import numpy as np
 import random
 from datetime import timedelta, datetime
+from .Customer import Customer
 
 class Visitor:
     def __init__(self, env, dropoff_probability):
@@ -11,6 +12,7 @@ class Visitor:
         self.id = uuid.uuid4()
         self.data = []
         self.dropoff_probability = dropoff_probability
+        self.customer = None
 
     def pageview(self, page):
         current_time = self.get_current_time()
@@ -21,7 +23,7 @@ class Visitor:
             'element': None,
             'timestamp': current_time
         })
-        print(f"Visitor {self.id} visited the {page} at {self.env.now}.")
+        #print(f"Visitor {self.id} visited the {page} at {self.env.now}.")
 
     def click(self, page, element):
         current_time = self.get_current_time()
@@ -32,12 +34,12 @@ class Visitor:
             'element': element,
             'timestamp': current_time
         })
-        print(f"Visitor {self.id} clicked on {element} at {self.env.now}.")
+        #print(f"Visitor {self.id} clicked on {element} at {self.env.now}.")
     
     def dropoff(self, page):
         dropoff_probability = self.dropoff_probability.get(page, 0)
         if random.random() < dropoff_probability:
-            print(f"Visitor {self.id} dropped off at {self.env.now} on {page}.")
+            #print(f"Visitor {self.id} dropped off at {self.env.now} on {page}.")
             return True
         return False
     
@@ -78,6 +80,9 @@ class Visitor:
         yield self.env.timeout(.2)
 
         self.pageview('Order Confirmation')
+        self.customer = Customer(id=self.id)
+        self.customer.make_purchase(self.get_current_time())
+        #print(f"Customer {self.customer.id} made a purchase. Total purchases: {self.customer.purchase_count}.")
 
 def visitor_arrival_times(num_visitors, mu=720, sigma=180):
     """Generate visitor arrival times following a normal distribution."""

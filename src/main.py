@@ -1,10 +1,11 @@
 from eCommerce_DataGenerator import Visitor, visitor_arrival_times, run_simulation
+from eCommerce_DataGenerator import Utils
 import simpy 
 
 def main():
 
     env = simpy.Environment()
-    num_visitors = 100  # Number of visitors arriving
+    num_visitors = 1000  # Number of visitors arriving
     dropoff_probabilities = {
         'Homepage': 0.1,
         'Product Page': 0.2,
@@ -21,11 +22,18 @@ def main():
 
     import pandas as pd
 
-    all_data = []
+    interactions = []
+    customer_data = []
     for visitor in visitor_data.value:
-        all_data.extend(visitor.data)
+        interactions.extend(visitor.data)
+        if visitor.customer:
+            customer_data.append(visitor.customer.to_dict())
 
-    site_events = pd.DataFrame(all_data)
+    print(f"Total number of interactions collected: {len(interactions)}")
+    print(f"Total number of customers: {len(customer_data)}")
+    
+    #conn = sqlite3.connect('simulation_data.db')
+    Utils.load_data_to_db(interactions, customer_data)
 
 if __name__ == '__main__':
     main()
