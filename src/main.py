@@ -1,11 +1,25 @@
-from eCommerce_DataGenerator import Visitor, visitor_arrival_times, run_simulation
+# from eCommerce_DataGenerator import Visitor
 from eCommerce_DataGenerator import Utils
+from eCommerce_DataGenerator.Simulation import get_returning_customers, visitor_arrival_times, run_simulation
 import simpy 
 
 def main():
+    # Configuration
+    db_name = r'../eCommerce_Simulation.db'  # Path to your SQLite database
+    total_visitors = 1000  # Total number of visitors arriving
+    returning_customer_ratio = 0.1  # 10% of visitors are returning customers
+    
+    # Calculate the number of returning and new customers
+    n_returning_visitors = int(total_visitors * returning_customer_ratio)
+    n_new_visitors = total_visitors - n_returning_visitors
+    
+    # Get the list of returning customers from the database
+    returning_customers = get_returning_customers(n_returning_visitors, db_name)
 
-    env = simpy.Environment()
-    num_visitors = 1000  # Number of visitors arriving
+    # Generate visitor arrival times using a normal distribution centered around 12 PM (720 minutes)
+    arrival_times = visitor_arrival_times(total_visitors)
+
+    # Define dropoff probabilities for different pages
     dropoff_probabilities = {
         'Homepage': 0.1,
         'Product Page': 0.2,
@@ -13,15 +27,14 @@ def main():
         'Review Order': 0.4
     }
 
-    # Generate visitor arrival times using a normal distribution centered around 12 PM (720 minutes)
-    arrival_times = visitor_arrival_times(num_visitors)
-
+    # Initialize the simulation environment
+    env = simpy.Environment()
+    
     # Run the simulation
-    visitor_data = env.process(run_simulation(env, arrival_times, dropoff_probabilities))
+    visitor_data = env.process(run_simulation(env, n_new_visitors, n_returning_visitors, arrival_times, dropoff_probabilities, returning_customers))
     env.run(until=visitor_data)
 
-    import pandas as pd
-
+    # Process the results
     interactions = []
     customer_data = []
     for visitor in visitor_data.value:
@@ -32,9 +45,8 @@ def main():
     print(f"Total number of interactions collected: {len(interactions)}")
     print(f"Total number of customers: {len(customer_data)}") 
 
-    
+    # Load data into the database
     Utils.load_data_to_db(interactions, customer_data)
 
 if __name__ == '__main__':
     main()
-

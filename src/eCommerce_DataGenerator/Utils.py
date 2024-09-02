@@ -1,5 +1,7 @@
 import sqlite3
 
+##TODO: Add visit, pages counter to customer table
+
 def insert_interactions(data, conn):
     """
     Inserts interaction data into the SQLite database.

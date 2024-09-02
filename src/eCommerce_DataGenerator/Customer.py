@@ -4,7 +4,7 @@ import pandas as pd
 from faker import Faker
 
 class Customer:
-    def __init__(self, visitor_id, name=None, gender=None, age=None):
+    def __init__(self, visitor_id, name=None, gender=None, age=None, purchase_count=0, last_purchase_time=None, email=None):
               
         fake = Faker()
         
@@ -12,10 +12,10 @@ class Customer:
         self.name = name if name else fake.name()  # Generate a random name if not provided
         self.gender = gender if gender else random.choice(['Male', 'Female'])
         self.age = age if age else random.randint(18, 80)  # Random age between 18 and 80
-        self.purchase_count = 0
-        self.last_purchase_time = None
+        self.purchase_count = purchase_count
+        self.last_purchase_time = last_purchase_time
         self.email = fake.email()
-
+    
     def make_purchase(self, timestamp):
         self.purchase_count += 1
         self.last_purchase_time = timestamp

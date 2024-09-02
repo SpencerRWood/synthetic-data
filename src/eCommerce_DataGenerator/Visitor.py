@@ -1,18 +1,19 @@
 #new visitors are defined here as a class
 import uuid
-import simpy
+import sqlite3
 import numpy as np
 import random
 from datetime import timedelta, datetime
 from .Customer import Customer
 
 class Visitor:
-    def __init__(self, env, dropoff_probability):
+    def __init__(self, env, dropoff_probability, customer=None):
         self.env = env
-        self.visitor_id = uuid.uuid4()
+        self.visitor_id = uuid.uuid4() if customer is None else customer.visitor_id
         self.data = []
         self.dropoff_probability = dropoff_probability
-        self.customer = None
+        self.customer = customer
+        self.is_new_customer = customer is None
 
     def pageview(self, page):
         current_time = self.get_current_time()
@@ -44,11 +45,53 @@ class Visitor:
         return False
     
     def get_current_time(self):
-        """Convert simulation time (in minutes) to a timestamp in HH:MM format."""
+        """Convert simulation time (in minutes) to a timestamp in YYYY-MM-DD HH:MM:SS format."""
         current_time = datetime.combine(datetime.today(), datetime.min.time()) + timedelta(minutes=self.env.now)
-        return current_time.strftime('%H:%M')
+        return current_time.strftime('%Y-%m-%d %H:%M:%S')
     
-    def simulate_site_interactions(self):
+    def update_customer_in_db(self, db_name):
+        if not self.is_new_customer:  # Only update if this is an existing customer
+            conn = sqlite3.connect(db_name)
+            cursor = conn.cursor()
+
+            query = '''
+            UPDATE customers
+            SET purchase_count = ?, last_purchase_time = ?
+            WHERE visitor_id = ?;
+            '''
+
+            cursor.execute(query, (
+                self.customer.purchase_count,
+                self.customer.last_purchase_time,
+                self.customer.visitor_id
+            ))
+            conn.commit()
+            conn.close()
+    
+    def insert_new_customer_to_db(self, db_name):
+        """Insert the new customer into the database after a purchase."""
+        if self.is_new_customer:  # Only insert if this is a new customer
+            conn = sqlite3.connect(db_name)
+            cursor = conn.cursor()
+
+            query = '''
+            INSERT INTO customers (visitor_id, name, gender, age, purchase_count, last_purchase_time, email)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            '''
+
+            cursor.execute(query, (
+                self.customer.visitor_id,
+                self.customer.name,
+                self.customer.gender,
+                self.customer.age,
+                self.customer.purchase_count,
+                self.customer.last_purchase_time,
+                self.customer.email
+            ))
+            conn.commit()
+            conn.close()
+
+    def simulate_site_interactions(self, db_name='eCommerce_Simulation.db'):
         self.pageview('Homepage')
         if self.dropoff('Homepage'):
             return
@@ -80,26 +123,11 @@ class Visitor:
         yield self.env.timeout(.2)
 
         self.pageview('Order Confirmation')
-        self.customer = Customer(visitor_id=str(self.visitor_id))
+        if not self.customer:
+            self.customer = Customer(id=str(self.visitor_id))
         self.customer.make_purchase(self.get_current_time())
+        self.insert_new_customer_to_db(db_name)
+        self.update_customer_in_db(db_name)
+    
         #print(f"Customer {self.customer.id} made a purchase. Total purchases: {self.customer.purchase_count}.")
-
-def visitor_arrival_times(num_visitors, mu=720, sigma=180):
-    """Generate visitor arrival times following a normal distribution."""
-    arrival_times = np.random.normal(mu, sigma, num_visitors)
-    # Clip values to ensure they are within the 0-1440 minute range
-    arrival_times = np.clip(arrival_times, 0, 1440)
-    return sorted(arrival_times)
-
-def run_simulation(env, arrival_times, dropoff_probabilities):
-    """Simulates visitors arriving at specific times."""
-    visitor_data = []
-    for arrival_time in arrival_times:
-        delay = arrival_time - env.now
-        if delay > 0:
-            yield env.timeout(delay)  # Only yield if delay is positive
-        visitor = Visitor(env, dropoff_probabilities)
-        env.process(visitor.simulate_site_interactions())
-        visitor_data.append(visitor)
-    return visitor_data
 
