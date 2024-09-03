@@ -14,11 +14,13 @@ class Visitor:
         self.dropoff_probability = dropoff_probability
         self.customer = customer
         self.is_new_customer = customer is None
+        self.return_customer = self.is_new_customer is False
 
     def pageview(self, page):
         current_time = self.get_current_time()
         self.data.append({
             'visitor_id': str(self.visitor_id),
+            'return_customer': self.return_customer,
             'page': page,
             'interaction': 'Pageview',
             'element': None,
@@ -30,6 +32,7 @@ class Visitor:
         current_time = self.get_current_time()
         self.data.append({
             'visitor_id': str(self.visitor_id),
+            'return_customer': self.return_customer,
             'page': page,
             'interaction': 'Click',
             'element': element,
@@ -56,17 +59,19 @@ class Visitor:
 
             query = '''
             UPDATE customers
-            SET purchase_count = ?, last_purchase_time = ?
+            SET purchase_count = ?, last_purchase_time = ?, return_customer = ?
             WHERE visitor_id = ?;
             '''
 
             cursor.execute(query, (
                 self.customer.purchase_count,
                 self.customer.last_purchase_time,
+                self.return_customer,
                 self.customer.visitor_id
             ))
             conn.commit()
             conn.close()
+
     
     def insert_new_customer_to_db(self, db_name):
         """Insert the new customer into the database after a purchase."""
@@ -75,12 +80,13 @@ class Visitor:
             cursor = conn.cursor()
 
             query = '''
-            INSERT INTO customers (visitor_id, name, gender, age, purchase_count, last_purchase_time, email)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO customers (visitor_id, return_customer, name, gender, age, purchase_count, last_purchase_time, email)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             '''
 
             cursor.execute(query, (
                 self.customer.visitor_id,
+                self.return_customer,
                 self.customer.name,
                 self.customer.gender,
                 self.customer.age,
@@ -90,6 +96,7 @@ class Visitor:
             ))
             conn.commit()
             conn.close()
+
 
     def simulate_site_interactions(self, db_name='eCommerce_Simulation.db'):
         self.pageview('Homepage')
@@ -124,10 +131,13 @@ class Visitor:
 
         self.pageview('Order Confirmation')
         if not self.customer:
-            self.customer = Customer(id=str(self.visitor_id))
+            self.customer = Customer(visitor_id=str(self.visitor_id)
+                                     , return_customer=self.return_customer)
         self.customer.make_purchase(self.get_current_time())
         self.insert_new_customer_to_db(db_name)
+        # print('customers uploaded')
         self.update_customer_in_db(db_name)
+        # print('customers updated')
     
         #print(f"Customer {self.customer.id} made a purchase. Total purchases: {self.customer.purchase_count}.")
 

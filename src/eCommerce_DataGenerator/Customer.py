@@ -4,11 +4,12 @@ import pandas as pd
 from faker import Faker
 
 class Customer:
-    def __init__(self, visitor_id, name=None, gender=None, age=None, purchase_count=0, last_purchase_time=None, email=None):
+    def __init__(self, visitor_id, return_customer, name=None, gender=None, age=None, purchase_count=0, last_purchase_time=None, email=None):
               
         fake = Faker()
         
         self.visitor_id = visitor_id
+        self.return_customer = return_customer
         self.name = name if name else fake.name()  # Generate a random name if not provided
         self.gender = gender if gender else random.choice(['Male', 'Female'])
         self.age = age if age else random.randint(18, 80)  # Random age between 18 and 80
@@ -23,6 +24,7 @@ class Customer:
     def to_dict(self):
         return {
             'visitor_id': self.visitor_id,
+            'return_customer': self.return_customer,
             'name': self.name,
             'gender': self.gender,
             'age': self.age,

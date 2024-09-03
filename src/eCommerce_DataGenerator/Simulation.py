@@ -13,17 +13,23 @@ def get_returning_customers(n_returning_customers, db_name):
     :param db_name: Path to the SQLite database file.
     :return: List of returning customers as Customer objects.
     """
+    print(f"Connecting to database: {db_name}")
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
+    cursor.execute('SELECT COUNT(*) FROM customers')
+    count = cursor.fetchone()[0]
+
+    if count == 0:
+        # If the table is empty, return an empty list
+        print("The customers table is empty. Returning 0 returning customers.")
+        conn.close()
+        return []
+
     query = '''
-    WITH customer_sample AS (
-        SELECT visitor_id, name, gender, age, purchase_count, last_purchase_time, email
-        FROM customers
-        ORDER BY RANDOM() -- SQLite syntax; use RAND() for MySQL or NEWID() for SQL Server
-    )
-    SELECT *
-    FROM customer_sample
+    SELECT visitor_id, return_customer, name, gender, age, purchase_count, last_purchase_time, email
+    FROM customers
+    ORDER BY RANDOM()
     LIMIT ?;
     '''
     
@@ -34,13 +40,14 @@ def get_returning_customers(n_returning_customers, db_name):
     # Convert the rows into a list of Customer objects
     returning_customers = [
         Customer(
-            id=row[0],  # Assuming 'ID' is the first column
-            name=row[1],  # Assuming 'Name' is the second column
-            gender=row[2],  # Assuming 'Gender' is the third column
-            age=row[3],  # Assuming 'Age' is the fourth column
-            purchase_count=row[4],  # Assuming 'Purchase_Count' is the sixth column
-            last_purchase_time=row[5],  # Assuming 'Last_Purchase_Time' is the seventh column
-            email=row[6]  # Assuming 'Email' is the eighth column
+            visitor_id=row[0],  # Assuming 'ID' is the first column\
+            return_customer = row[1],
+            name=row[2],  # Assuming 'Name' is the second column
+            gender=row[3],  # Assuming 'Gender' is the third column
+            age=row[4],  # Assuming 'Age' is the fourth column
+            purchase_count=row[5],  # Assuming 'Purchase_Count' is the sixth column
+            last_purchase_time=row[6],  # Assuming 'Last_Purchase_Time' is the seventh column
+            email=row[7]  # Assuming 'Email' is the eighth column
         )
         for row in rows
     ]

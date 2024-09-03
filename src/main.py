@@ -1,11 +1,12 @@
 # from eCommerce_DataGenerator import Visitor
 from eCommerce_DataGenerator import Utils
 from eCommerce_DataGenerator.Simulation import get_returning_customers, visitor_arrival_times, run_simulation
-import simpy 
+import simpy
+import sqlite3
 
 def main():
     # Configuration
-    db_name = r'../eCommerce_Simulation.db'  # Path to your SQLite database
+    db_name = 'eCommerce_Simulation.db'  # Path to your SQLite database
     total_visitors = 1000  # Total number of visitors arriving
     returning_customer_ratio = 0.1  # 10% of visitors are returning customers
     
@@ -46,7 +47,9 @@ def main():
     print(f"Total number of customers: {len(customer_data)}") 
 
     # Load data into the database
-    Utils.load_data_to_db(interactions, customer_data)
+    conn = sqlite3.connect(db_name)
+    Utils.insert_interactions(interactions,conn)
+    conn.close()
 
 if __name__ == '__main__':
     main()
